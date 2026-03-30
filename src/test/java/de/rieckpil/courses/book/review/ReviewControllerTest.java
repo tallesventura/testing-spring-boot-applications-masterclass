@@ -1,7 +1,10 @@
 package de.rieckpil.courses.book.review;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import de.rieckpil.courses.config.WebSecurityConfig;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -24,10 +27,27 @@ class ReviewControllerTest {
 
   @Autowired private MockMvc mockMvc;
 
+  @Autowired
   private ObjectMapper objectMapper;
 
   @Test
-  void shouldReturnTwentyReviewsWithoutAnyOrderWhenNoParametersAreSpecified() throws Exception {}
+  void shouldReturnTwentyReviewsWithoutAnyOrderWhenNoParametersAreSpecified() throws Exception {
+    ArrayNode result = objectMapper.createArrayNode();
+
+    ObjectNode statistic = objectMapper.createObjectNode();
+    statistic.put("bookId", 1L);
+    statistic.put("isbn", "42");
+    statistic.put("avg", 89.3);
+    statistic.put("ratings", 2);
+
+    result.add(statistic);
+
+    when(reviewService.getAllReviews(20, "none")).thenReturn(result);
+
+    mockMvc.perform(get("/api/books/reviews"))
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.size()", Matchers.is(1)));
+  }
 
   @Test
   void shouldNotReturnReviewStatisticsWhenUserIsUnauthenticated() throws Exception {}
