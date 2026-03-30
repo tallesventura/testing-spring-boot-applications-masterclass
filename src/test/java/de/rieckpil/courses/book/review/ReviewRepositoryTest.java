@@ -1,15 +1,21 @@
 package de.rieckpil.courses.book.review;
 
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 
 import javax.sql.DataSource;
 
 import jakarta.persistence.EntityManager;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @DataJpaTest(
     properties = {
@@ -29,9 +35,45 @@ class ReviewRepositoryTest {
 
   @Autowired private TestEntityManager testEntityManager;
 
-  @Test
-  void notNull() throws SQLException {}
+  @BeforeEach
+  void beforeEach() {
+    assertEquals(0, cut.count());
+  }
 
   @Test
-  void transactionalSupportTest() {}
+  void notNull() throws SQLException {
+    assertNotNull(entityManager);
+    assertNotNull(cut);
+    assertNotNull(dataSource);
+    assertNotNull(testEntityManager);
+
+    System.out.println(dataSource.getConnection().getMetaData().getDatabaseProductName());
+
+    Review review = new Review();
+    review.setTitle("Review 101");
+    review.setContent("Good review");
+    review.setCreatedAt(LocalDateTime.now());
+    review.setRating(5);
+    review.setBook(null);
+    review.setUser(null);
+
+    Review result = cut.save(review);
+
+    Assertions.assertNotNull(result.getId());
+  }
+
+  @Test
+  void transactionalSupportTest() {
+
+    Review review = new Review();
+    review.setTitle("Review 101");
+    review.setContent("Good review");
+    review.setCreatedAt(LocalDateTime.now());
+    review.setRating(5);
+    review.setBook(null);
+    review.setUser(null);
+
+    Review result = cut.save(review);
+
+  }
 }
